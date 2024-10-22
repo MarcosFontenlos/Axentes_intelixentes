@@ -1,0 +1,110 @@
+\documentclass[a4paper,12pt]{article}
+
+% Paquetes básicos
+\usepackage[utf8]{inputenc}   % Codificación de caracteres
+\usepackage[spanish]{babel}   % Idioma español
+\usepackage{graphicx}         % Inclusión de imágenes
+\usepackage{amsmath}          % Símbolos matemáticos avanzados
+\usepackage{hyperref}         % Hipervínculos
+\usepackage{geometry}         % Control de márgenes
+\usepackage{cite}             % Citas bibliográficas
+\usepackage{setspace}         % Control del interlineado
+\usepackage{fancyhdr}         % Encabezados y pies de página
+
+% Configuración del documento
+\geometry{a4paper, margin=1in}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+\onehalfspacing  % Interlineado de 1.5
+
+% Configuración del encabezado y pie de página
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Práctica I}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+
+\begin{document}
+
+% Título
+\title{Práctica I}
+\author{Marcos Fontenlos\and Juan Trastoy\and Bruno del Campo}
+\date{\today}
+\maketitle
+
+
+
+
+% 1. Introducción
+\section{Introducción}
+El objetivo de la práctica es diseñar un comportamiento reactivo de un robot por medio de una máquina finita de estados de forma que nuestro robot sea capaz de resolver por sí mismo un laberinto estándar de una complejidad no muy alta. Pondremos en práctica distintos algoritmos para ajustar el comportamiento del robot de forma que realice acciones de forma inteligente. 
+
+\pragraph{}
+
+Para construir un comportamiento correcto y optimizado para que nuestro robot de ejemplo consiga salir de cualquier laberinto podremos utilizar diversas técnicas y algoritmos de búsqueda. El más sencillo en cuanto a complejidad y el primero que hemos estudiado ha sido el seguidor de paredes, pero no ha sido al que hemos recurrido finalmente. Gracias a este algoritmo podemos resolver cualquier laberinto de forma sencilla únicamente siguiendo un proceso de búsqueda y seguimiento de una pared concreta. El problema de esta solución es que pese a que tendrá una tasa de éxito absoluta para un laberinto muy complejo nuestro robot tardará mucho en llegar a la meta, y es probable que pase varias veces por el mismo sitio, lo cual es un comportamiento indeseado.
+\pragraph{}
+Indagando un poco más en algoritmos que pudiésemos utilizar decidimos hacer una implementación del algoritmo de Tremaux. Este nos ayudará a resolver los laberintos de complejidad altísima reduciendo los tiempos de búsqueda, además, la máquina de estados se simplifica bastante pues tendremos una serie de estados básicos y de operadores muy simples para la toma de decisiones de nuestro robot.
+
+% 2. Planteamiento y desarrollo
+\section{Planteamiento, modelización y desarrollo}
+\subsection{Planteamiento}
+Los pasos a seguir para resolver la práctica fueron, en primer lugar, escoger el algoritmo con el que moveremos al robot, pues de este dependerá en gran medida el comportamiento que le debamos de dar al robot posteriormente y el diseño de la máquina de estados que debemos construír; en ningún caso podremos diseñar una máquina de estados precisa si no tenemos claro las acciones que podrá realizar nuestro robot pues diferentes metodologías implican diferentes posibilidades para el robot.
+ 
+\subsection{Máquina de estados}
+A lo largo de esta práctica hemos experimentado con diferentes máquinas de estados en busca de una que sea lo más polivalente posible pero siempre conservando cierta simplicidad. En nuestra primera máquina de estados contábamos con implementar un seguidor simple de paredes, lo que nos hizo cambiar de parecer fué la cantidad de posibilidades que debíamos considerar para que el robot fuese capaz de resolver todo tipo de laberintos comenzando desde cualquier posición. Por ello decidimos buscar otras posibilidades que fuesen más potentes y que exprimiesen al máximo las capacidades de nuestro robot.  
+
+\subsubsection{Seguidor de paredes}
+Fueron varias las ideas que tuvimos para empezar a construír la máquina de estados que definiese un seguidor de paredes, al inicio de la práctica teníamos la idea de crear una máquina de estados secuencial para que la conversión a programa fuese casi automática pero posteriormente decidimos que si hacíamos una máquina con diferentes estados que a su vez tuviesen otros estados dentro de ellos mismos podríamos simplificar las cosas a la hora de diseñarla. Por tanto, nuestra máquina definitiva tiene 3 estados principales, de los cuales se derivan otros que dan un escalón de profundidad al comportamiento empleando una herencia.
+Insertar imágen del primer maquina
+\paragraph{}
+En base a este planteamiento inicial fuimos puliendo la máquina para que considerase multitud de posibilidades para resolver el laberinto para al final conseguir lo siguiente:
+
+Insertar imágen de la maquina 2 
+
+El estado inicial será de reposo del robot, en este estado el robot no se mueve pero sí que es consciente de las distancias de los objetos a su alrededor. Pudiera parecer que es un estado innecesario dado el tipo de problema que queremos afrontar pero no debemos olvidar que no sabemos en que tipo de laberinto puede encontrarse nuestro robot, sería ineficiente que el robot se moviese si se encuentra en un espacio cerrado o frente a una salida cerrada nada más entrar al laberinto, por tanto es una buena implementación que lo primero que haga el robot nada más empiece a funcionar sea evaluar las distancias para saber en qué situación se encuentra.
+\paragraph{}
+Dependiendo del resultado de la evalución del primer estado podremos decidir el comportamiento más sensato, como el robot solo evalúa la distancia en un rango de 180^\circ nos falta información completa del entorno. Por suerte podemos solucionar este problema girando el robot, de esta forma si giramos 180^\circ el robot tendremos un escaneo de 360^\circ completo. Este escaneo total solo será necesario en caso de que todas las distancias que recibimos en una primera instancia sean infinitas (no hay paredes ni objetos enfrente) o sean menores que un rango (el robot se encuentra entre paredes). En el primer caso el robot debería moverse hacia delante en busca de paredes de forma indefinida hasta que encuentre una pared. En el segundo caso el robot debe girar hasta que en un rango que hemos estimado de unos 60^\circ enfrente del robot tenga una distancia minima mayor a un rango que estimemos, de esta forma, podemos controlar el giro con mayor precisión.
+\paragraph{}
+Una vez hayamos superado estas situaciones significará que ya estamos dentro del laberinto y comenzaremos la tarea de aproximarnos a una pared, que es a su vez un nuevo estado, para ello, nos orientaremos hacia la dirección de mínima distancia y nos aproximaremos hasta llegar a una distancia prudencial de la misma, pero suficiente para ser capaces de seguir la pared con precisión. En el momento en el que estemos a esa distancia pasaremos al siguiente estado; el seguidor de paredes.
+\paragraph{}
+Podemos considerar este estado el más importante de todos ya que en su concepción decidimos que contuviese en su interior toda a lógica de movimiento del robot. Las directrices: derecha, izquierda y delante son parte de este estado, que evaluará la distancia a la pared de forma que el robot se mantenga siempre en un intervalo de distancia con la pared. En este momento el robot solo debe aplicar las directrices de forma lógica para ser capaz de llegar a la salida del laberinto.
+\paragraph{}
+Para saber que el robot está efectivamente en el final del laberinto, definiremos un nuevo estado al cual sólo llegaremos si todas las distancias detectadas por el lidar son infinitas, pues esta es la información que obtendremos si el robot ha llegado a la salida.
+
+Como podemos observar, hay bastantes estados posibles para este algoritmo de búsqueda, lo cual, puede complicarnos la parte de programación del mismo, además, imprecisiones en las medidas del robot podrían llevarnos a un comportamiento indeseado por lo que este algoritmo, pese a ser eficaz es poco eficiente y poco robusto. 
+
+\subsubsection{Algoritmo de Trèmaux}
+El algoritmo de Trémaux es específico para la resolución de problemas del tipo laberinto. Este algoritmo nos permite definir una máquina de estados regida por unas máximas y que, siempre que no rompamos estas máximas, funcionará para resolver el algoritmo. 
+
+
+
+\subsection{Subsección 2}
+Detallar otra parte de la metodología.
+
+% 3. Resultados
+\section{Análisis de resultados}
+Presenta los resultados obtenidos durante el desarrollo del trabajo. Puedes incluir gráficos, tablas o análisis cuantitativos.
+
+
+% 5. Conclusiones
+\section{Conclusiones}
+Aquí se resumen las conclusiones principales del artículo. Se pueden incluir sugerencias para futuros trabajos o investigaciones en el área.
+
+
+%Video Bruno 
+\href{https://youtu.be/u6S0vK1PFoI}{Ver video en YouTube}
+
+
+% Bibliografía
+\newpage
+\begin{thebibliography}{9}
+    \bibitem{ref1} Autor 1, Autor 2, \textit{Título del artículo o libro}. Editorial, Año.
+    \bibitem{ref2} Autor 3, \textit{Título del artículo o libro}. Editorial, Año.
+    \bibitem{ref3} Autor 4, \textit{Título del artículo o libro}. Editorial, Año.
+    %REpo git de los mapas
+    \bibitem{mapas}
+    \url{https://github.com/rfzeg/plywood_mazes}
+\end{thebibliography}
+
+\end{document}
+

@@ -71,10 +71,10 @@ class RobotLaberinto:
             self.estado_anterior = self.estado
 	
         # Imprimir el estado actual
-        print("Estado actual: ", self.estado)
-	print(self.range_ahead)
-	print(self.range_left)
-	print(self.range_right)
+            print("Estado actual: ", self.estado)
+            print(self.range_ahead)
+            print(self.range_left)
+            print(self.range_right)
         # Ejecutar el comportamiento segun el estado actual
         if self.estado == Estado.AVANZA:
             self.avanzar()
