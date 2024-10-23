@@ -12,9 +12,9 @@ def laser_callback(data):
  global ranges,range_mid,range_left,range_rigth,start,parar,adelante,final
 
  ranges=[5 if x == float('inf') or x == float('-inf') else x for x in data.ranges]
- range_rigth=ranges[10:50]
- range_mid=ranges[70:110]
- range_left=ranges[130:-10]
+ range_rigth=ranges[5:50]
+ range_mid=ranges[60:120]
+ range_left=ranges[130:-5]
 
  if calcular_media(ranges)>4.75:
      final=True

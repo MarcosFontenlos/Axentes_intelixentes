@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{article}
+\documentclass[a4paper,8pt]{article}
 
 % Paquetes básicos
 \usepackage[utf8]{inputenc}   % Codificación de caracteres
@@ -43,7 +43,9 @@ El objetivo de la práctica es diseñar un comportamiento reactivo de un robot p
 
 Para construir un comportamiento correcto y optimizado para que nuestro robot de ejemplo consiga salir de cualquier laberinto podremos utilizar diversas técnicas y algoritmos de búsqueda. El más sencillo en cuanto a complejidad y el primero que hemos estudiado ha sido el seguidor de paredes, pero no ha sido al que hemos recurrido finalmente. Gracias a este algoritmo podemos resolver cualquier laberinto de forma sencilla únicamente siguiendo un proceso de búsqueda y seguimiento de una pared concreta. El problema de esta solución es que pese a que tendrá una tasa de éxito absoluta para un laberinto muy complejo nuestro robot tardará mucho en llegar a la meta, y es probable que pase varias veces por el mismo sitio, lo cual es un comportamiento indeseado.
 \pragraph{}
-Indagando un poco más en algoritmos que pudiésemos utilizar decidimos hacer una implementación del algoritmo de Tremaux. Este nos ayudará a resolver los laberintos de complejidad altísima reduciendo los tiempos de búsqueda, además, la máquina de estados se simplifica bastante pues tendremos una serie de estados básicos y de operadores muy simples para la toma de decisiones de nuestro robot.
+Indagando un poco más en algoritmos que pudiésemos utilizar decidimos hacer una implementación del algoritmo de Tremaux. Este nos ayudará a resolver los laberintos de complejidad altísima reduciendo los tiempos de búsqueda, además, la máquina de estados se simplifica bastante pues tendremos una serie de estados básicos y de operadores muy simples para la toma de decisiones de nuestro robot. No obstante, para crear un comportamiento adecuado con este algoritmo necesitamos una gran precisión en las medidas, de lo contrario el algoritmo entero puede fallar por completo.
+\pragraph{}
+Por último, desarrollamos un comportamiento reactivo únicamente con la distancia. Nos dimos cuenta de que únicamente la información del láser del robot podía ser suficiente para darle a nuestro robot un comportamiento lo suficientemente inteligente como para salir del algoritmo empleando únicamente muestras de rangos independientes.
 
 % 2. Planteamiento y desarrollo
 \section{Planteamiento, modelización y desarrollo}
@@ -76,22 +78,34 @@ Como podemos observar, hay bastantes estados posibles para este algoritmo de bú
 \subsubsection{Algoritmo de Trèmaux}
 El algoritmo de Trémaux es específico para la resolución de problemas del tipo laberinto. Este algoritmo nos permite definir una máquina de estados regida por unas máximas y que, siempre que no rompamos estas máximas, funcionará para resolver el algoritmo. 
 
+Insertar imágenes de la máquina de estados
 
+\subsubsection{Comportamiento Reactivo}
+El último comportamiento que estudiamos se basa en una máquina de estados sencilla. Dos estados principales, \textit{E1} e \textit{Orientacion} se irán intercambiando dependiendo de la distancia a la que el robot se encuentre de la pared. Cuando el robot no se está orientando el \textit{E1} será el encargado de determinar lo que debe hacer el robot ya que es un \textit{superestado} que contendrá a suvez los estados: \textit{START}, \textit{AVANCE} y \textit{FIN}.
+\paragraph{}
+La idea de este algoritmo es orientar el robot de forma que siempre se dirija al espacio más abierto hasta que todas las distancias que detecte el láser sean próximas a infinito, momento en el que el robot se encontrará en el final del laberinto.
 
-\subsection{Subsección 2}
-Detallar otra parte de la metodología.
+Insertar imágenes de la máquina de estados
+
+\subsection{Implementación del espacio de trabajo}
+Lo primero que hicimos tras crear las máquinas de estados fue establecer un espacio de trabajo para ejecutar las pruebas pertinentes. Encontramos un \url{https://github.com/rfzeg/plywood_mazes}{repositorio} que contenía varios mapas laberínticos, así que decidimos usar los modelos en nuestros paquetes para poder utilizarlos. Estos archivos .world usan plantillas que también tuvimos que añadir al paquete en una estructura anidada de archivo .sdf y .world.
+\paragraph{}
+Para cada uno de los mapas creamos su respectivo archivo .launch y lo pusimos a funcionar. Por desgracia el robot de ejemplo era demasiado grande para nuestro laberinto y apenas podía pasar entre las paredes así que diseñamos un nuevo modelo llamado \textit{robot_pequeno} en el que redujimos a la mitad el tamaño de la caja las ruedas y reubicamos los objetos de contacto frontal y trasero. 
+
+\subsection{Implementación del comportamiento}
+El paso de máquina de estados a código Python resultó ser más complicado de lo esperado. La mejor forma de implementar un pseudocódigo como el de una máquina de estados es creando una clase que contenga los objetos estado por los que pasará nuestro robot, pero no nos dimos cuenta hasta ya pasado tiempo desde que empezamos a diseñar los programas. 
+\paragraph{}
+No obstante, si que intentamos crear una clase que contuviese los estados para aplicar el seguidor de paredes al robot.
 
 % 3. Resultados
-\section{Análisis de resultados}
-Presenta los resultados obtenidos durante el desarrollo del trabajo. Puedes incluir gráficos, tablas o análisis cuantitativos.
+El objetivo último de la práctica es comparar el tiempo que tarda el robot en resolver diferentes algoritmos ajustando parámetros y empleando las diversas máquinas de estado que diseñamos. Al haber creado máquinas de estados basadas en principios muy diferentes es de esperar que obtengamos resultados heterogéneos para cada una de nuestras pruebas. Además el hecho de trabajar con varios mapas nos dará una serie de datos que, en conjunto, serán de gran calidad y precisión.
 
 
 % 5. Conclusiones
 \section{Conclusiones}
-Aquí se resumen las conclusiones principales del artículo. Se pueden incluir sugerencias para futuros trabajos o investigaciones en el área.
 
 
-%Video Bruno 
+%Video algoritmo simple Bruno 
 \href{https://youtu.be/u6S0vK1PFoI}{Ver video en YouTube}
 
 
@@ -103,7 +117,7 @@ Aquí se resumen las conclusiones principales del artículo. Se pueden incluir s
     \bibitem{ref3} Autor 4, \textit{Título del artículo o libro}. Editorial, Año.
     %REpo git de los mapas
     \bibitem{mapas}
-    \url{https://github.com/rfzeg/plywood_mazes}
+    \url{https://github.com/rfzeg/plywood_mazes}{Repositorio de \textit{rfzeg}}
 \end{thebibliography}
 
 \end{document}

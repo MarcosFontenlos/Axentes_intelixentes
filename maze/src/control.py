@@ -12,7 +12,9 @@ class Estado:
     AVANZA = 4
     DETENIDO = 5
     FINALIZADO = 6  # Estado para el final del laberinto
-
+    GIRA_IZQUIERDA_AVANZO = 7
+    GIRA_DERECHA_AVANZO = 8
+    BUSCA_PARED = 9
 class RobotLaberinto:
     def __init__(self):
         self.estado = Estado.DETENIDO  # Estado inicial del robot
@@ -26,12 +28,10 @@ class RobotLaberinto:
 
     def scan_callback(self, msg):
         # Actualizar las distancias segun la informacion del sensor laser
-        lvector = len(msg.ranges) // 2
-        lvector_right = len(msg.ranges) * 3 // 4
-        lvector_left = len(msg.ranges) // 4
-        self.range_ahead = min(msg.ranges[lvector-50:lvector+50])
-        self.range_right = min(msg.ranges[lvector_left-25:lvector_left+25])
-        self.range_left = min(msg.ranges[lvector_right-25:lvector_right+25])
+        
+        self.range_ahead = min(msg.ranges[70:110])
+        self.range_right = min(msg.ranges[160:-1])
+        self.range_left = min(msg.ranges[0:30])
 
     def avanzar(self):
         self.move_cmd.linear.x = 0.3
@@ -43,10 +43,20 @@ class RobotLaberinto:
         self.move_cmd.angular.z = 0.5
         self.pub.publish(self.move_cmd)
 
+    def girar_izquierda_avanzo(self):
+        self.move_cmd.linear.x = 0.2
+        self.move_cmd.angular.z = 0.5
+        self.pub.publish(self.move_cmd)
+
     def girar_derecha(self):
         self.move_cmd.linear.x = 0.0
         self.move_cmd.angular.z = -0.5
         self.pub.publish(self.move_cmd)
+
+    def girar_derecha_avanzo(self):
+            self.move_cmd.linear.x = 0.2
+            self.move_cmd.angular.z = -0.5
+            self.pub.publish(self.move_cmd)
 
     def detener(self):
         self.move_cmd.linear.x = 0.0
@@ -54,15 +64,27 @@ class RobotLaberinto:
         self.pub.publish(self.move_cmd)
 
     def sigue_pared(self):
-        # Detectar el final del laberinto: espacio libre al frente y sin paredes a los lados
-        if self.range_ahead > 6 and self.range_right > 6 and self.range_left > 6:
-            self.estado = Estado.FINALIZADO
-        elif self.range_ahead > 1 and self.range_right < 0.5:
-            self.estado = Estado.AVANZA  # Avanza si no hay obstaculo en frente y hay una pared cerca
-        elif self.range_ahead <= 1:
-            self.estado = Estado.GIRA_IZQUIERDA  # Gira a la izquierda si hay un obstaculo enfrente
-        elif self.range_right > 0.5:
-            self.estado = Estado.GIRA_DERECHA  # Gira a la derecha si no hay pared cercana
+        if self.range_ahead > 1:  # Si hay espacio por delante, avanza
+            self.move_cmd.linear.x = 0.3
+            if self.range_right < 0.5:  # Si hay una pared muy cerca a la derecha, gira a la izquierda
+                self.move_cmd.angular.z = 0.25
+            elif self.range_right > 0.9:  # Si la pared esta lejos a la derecha, gira a la derecha
+                self.move_cmd.angular.z = -0.5
+            else:  # Avanza recto si la pared esta a una distancia correcta
+                self.move_cmd.angular.z = 0.0
+        else:  # Si no hay espacio por delante, gira a la izquierda
+            self.move_cmd.linear.x = 0.0
+            self.move_cmd.angular.z = 0.5
+        self.pub.publish(self.move_cmd)
+
+    def buscar_pared(self):
+        # Si no ha encontrado una pared, sigue avanzando hasta detectar una
+        self.move_cmd.linear.x = 0.3
+        self.move_cmd.angular.z = 0.0
+        if self.range_ahead < 0.8:
+            self.hay_pared = True
+            self.estado = Estado.SIGUE_PARED
+        self.pub.publish(self.move_cmd)
 
     def ejecutar(self):
         # Comprobar si el estado ha cambiado
@@ -82,8 +104,15 @@ class RobotLaberinto:
             self.girar_izquierda()
         elif self.estado == Estado.GIRA_DERECHA:
             self.girar_derecha()
+        elif self.estado == Estado.GIRA_IZQUIERDA_AVANZO:
+            self.girar_izquierda_avanzo()
+        elif self.estado == Estado.GIRA_DERECHA_AVANZO:
+            self.girar_derecha_avanzo()
         elif self.estado == Estado.SIGUE_PARED:
             self.sigue_pared()
+        elif self.estado == Estado.BUSCA_PARED:
+            self.buscar_pared()
+
         elif self.estado == Estado.FINALIZADO:
             print("Labertinto resuelto: el robot ha encontrado la salida")
             self.detener()
