@@ -74,6 +74,10 @@
       </spot>
     </light>
 
+    <include>
+            <uri>model://robot</uri>
+            <pose>0 0 0 0 0 0</pose>
+    </include>
     <!-- A wooden parquet ground plane -->
     <include>
       <uri>model://floor_parquet2</uri>
