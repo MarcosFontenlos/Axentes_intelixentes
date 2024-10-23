@@ -47,11 +47,7 @@
             <pose>3 0 0 0 0 0</pose>
         </include>
 
-        <include>
-            <name>metal_plate_4_0_b</name>
-            <uri>model://metal_plate</uri>
-            <pose>4 0 0 0 0 1.571</pose>
-        </include>
+        
         <include>
             <name>metal_joint_4_0_b</name>
             <uri>model://metal_joint</uri>
@@ -259,7 +255,11 @@
             <pose>6 4 0 0 0 0</pose>
         </include>
 
-        
+        <include>
+            <name>metal_plate_6_5_a</name>
+            <uri>model://metal_plate</uri>
+            <pose>6 5 0 0 0 3.14159</pose>
+        </include>
        <include>
             <name>metal_joint_6_5_a</name>
             <uri>model://metal_joint</uri>

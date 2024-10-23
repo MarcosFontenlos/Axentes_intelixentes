@@ -73,10 +73,10 @@
         <falloff>1</falloff>
       </spot>
     </light>
-
     <include>
             <uri>model://robot</uri>
             <pose>0 0 0 0 0 0</pose>
+            <scale>0.5 0.5 0.5</scale>
     </include>
     <!-- A wooden parquet ground plane -->
     <include>

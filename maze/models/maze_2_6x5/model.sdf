@@ -168,11 +168,6 @@
         </include>
 
         <include>
-            <name>plywood_panel_0_4_a</name>
-            <uri>model://plywood_panel</uri>
-            <pose>0 4 0 0 0 3.14159</pose>
-        </include>
-        <include>
             <name>wooden_joint_0_4</name>
             <uri>model://wooden_joint</uri>
             <pose>0 4 0 0 0 0</pose>

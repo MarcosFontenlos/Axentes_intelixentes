@@ -58,11 +58,7 @@
             <pose>4 0 0 0 0 0</pose>
         </include>
 
-        <include>
-            <name>plywood_panel_5_0_b</name>
-            <uri>model://plywood_panel</uri>
-            <pose>5 0 0 0 0 1.571</pose>
-        </include>
+        
         <include>
             <name>wooden_joint_5_0_b</name>
             <uri>model://wooden_joint</uri>
