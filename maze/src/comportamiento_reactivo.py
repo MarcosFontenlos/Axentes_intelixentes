@@ -12,9 +12,9 @@ def laser_callback(data):
  global ranges,range_mid,range_left,range_rigth,start,parar,adelante,final
 
  ranges=[5 if x == float('inf') or x == float('-inf') else x for x in data.ranges]
- range_rigth=ranges[5:50]
- range_mid=ranges[60:120]
- range_left=ranges[130:-5]
+ range_rigth=ranges[10:50]
+ range_mid=ranges[70:110]
+ range_left=ranges[130:-10]
 
  if calcular_media(ranges)>4.75:
      final=True
@@ -23,20 +23,26 @@ def laser_callback(data):
      start=False
 
 
- if min(range_rigth)<3:
+ if min(range_rigth)<3.6:
      adelante=False
+     parar1=True
  else:
-     adelante=True
-
+     parar1=True
 
  if min(range_left)<2 or min(range_rigth)<2 or min(range_mid)<2:
      parar=True
      adelante=False
  else:
      parar=False
-     adelante=True
+     parar1=True
 
-  
+ if min(range_left)==0 or min(range_rigth)==0 or min(range_mid)==0:
+     retroceso=True
+     parar=False
+     parar1=False
+     adelante=False
+ else:
+     pass
 
 
 
@@ -53,9 +59,9 @@ def odom_callback(data):
         previous_position= (current_x, current_y)
 
     # Calcular la distancia desde la posicion inicial
-    distance = math.sqrt((current_x - initial_position[0])**2 + (current_y - initial_position[1])**2)
+    distance = math.sqrt((current_x - initial_position[0])*2 + (current_y - initial_position[1])*2)
       # Calcular la distancia entre la posicion anterior y la actual
-    distance_step = math.sqrt((current_x - previous_position[0])**2 + (current_y - previous_position[1])**2)
+    distance_step = math.sqrt((current_x - previous_position[0])*2 + (current_y - previous_position[1])*2)
 
     # Acumular la distancia recorrida
     distance_total += distance_step
@@ -63,11 +69,8 @@ def odom_callback(data):
     previous_position = (current_x, current_y)
 
 
-
-
 def calcular_media(lista):
     return sum(lista) / (len(lista))
-
 
 def orientar_choque():
     global range_mid , range_rigth,range_left,pub,velocity,parar,ranges
@@ -107,11 +110,18 @@ def orientar_choque():
 
 def orientar():
     global range_mid , range_rigth,range_left,pub,velocity
-    if (calcular_media(range_mid) >calcular_media(range_rigth)) and  (calcular_media(range_mid) >calcular_media(range_left)):
-        rospy.loginfo("Vamos a de frente(orientacion)")
-        velocity.linear.x=1
-        velocity.angular.z=0
+    if (calcular_media(range_mid) >calcular_media(range_rigth)) and  (calcular_media(range_mid) >calcular_media(range_left)) and (calcular_media(range_rigth) >calcular_media(range_left)) :
+        rospy.loginfo("Vamos a de frente der(orientacion)")
+        velocity.linear.x=0.5
+        velocity.angular.z=-0.15
         pub.publish(velocity)
+
+    if (calcular_media(range_mid) >calcular_media(range_rigth)) and  (calcular_media(range_mid) >calcular_media(range_left)) and (calcular_media(range_left) >calcular_media(range_rigth)) :
+        rospy.loginfo("Vamos a de frente izq(orientacion)")
+        velocity.linear.x=0.5
+        velocity.angular.z=0.15
+        pub.publish(velocity)
+
     elif (calcular_media(range_left) > calcular_media(range_rigth)) :      
         rospy.loginfo("Vamos a girar a la izquierda (orientacion)")
         velocity.linear.x=0
@@ -153,8 +163,10 @@ rate = rospy.Rate(5)  # 10 Hz
 
 start=True
 parar=False
+parar1=False
 adelante=False
 final=False
+retroceso=False
 
 while not  rospy.is_shutdown():
     if final:
@@ -162,18 +174,24 @@ while not  rospy.is_shutdown():
         total_time = end_time - start_time
         rospy.loginfo("El robot ha encontrado la salida.")
         rospy.loginfo("Tiempo total de busqueda:%.2f segundos.",(total_time))
-        rospy.loginfo("Distancia total de bsqueda:%.2f m.",(distance_total))
+        rospy.loginfo("Distancia total de busqueda:%.2f m.",(distance_total))
         velocity.linear.x=0
         velocity.angular.z=0
         pub.publish(velocity)
             # Parar el nodo de ROS y el programa
         rospy.signal_shutdown("El robot ha encontrado la salida. Programa finalizado.")
+    elif parar1: 
+        velocity.linear.x=0
+        velocity.angular.z=0
+        pub.publish(velocity)
+        orientar()
+
     elif parar: 
         velocity.linear.x=0
         velocity.angular.z=0
         pub.publish(velocity)
         orientar_choque()
-    
+      
     elif start: 
         velocity.linear.x=0.5
         velocity.angular.z=0
@@ -183,10 +201,12 @@ while not  rospy.is_shutdown():
         velocity.linear.x=0.5
         velocity.angular.z=0
         pub.publish(velocity)
+    elif retroceso:
+        velocity.linear.x=1
+        velocity.angular.z=0
+        pub.publish(velocity)
 
     else:
-        orientar()
+        orientar_choque()
 
     rate.sleep()  # Esperar hasta el siguiente ciclo del bucle
-
-
